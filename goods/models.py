@@ -7,8 +7,8 @@ class Shop(models.Model):
         verbose_name = 'Магазин'
         verbose_name_plural = 'Магазины'
 
-    name = models.CharField(max_length=255, verbose_name='название')
-    ulr = models.URLField(verbose_name='сайт')
+    name = models.CharField(max_length=255, unique=True, verbose_name='название')
+    url = models.URLField(verbose_name='сайт')
 
     def __str__(self) -> str:
         return self.name
@@ -59,6 +59,8 @@ class ProductInfo(models.Model):
         Product, on_delete=models.CASCADE, verbose_name='товар')
     shop = models.ForeignKey(
         Shop, on_delete=models.CASCADE, verbose_name='магазин')
+    article_number = models.IntegerField(verbose_name='артикул')
+    model = models.CharField(max_length=255, verbose_name='модель')
     name = models.CharField(max_length=255, verbose_name='название')
     quantity = models.PositiveIntegerField(
         default=0, verbose_name='количество')
@@ -77,7 +79,7 @@ class Parameter(models.Model):
         verbose_name = 'Параметр'
         verbose_name_plural = 'Параметры'
 
-    name = models.CharField(max_length=255, verbose_name='название')
+    name = models.CharField(max_length=255, unique=True, verbose_name='название')
 
     def __str__(self) -> str:
         return self.name
@@ -90,7 +92,7 @@ class ProductParameter(models.Model):
         verbose_name_plural = 'Параметры товаров'
 
     product_info = models.ForeignKey(
-        ProductInfo, on_delete=models.CASCADE, verbose_name='информация о товаре')
+        ProductInfo, on_delete=models.CASCADE, related_name='product_parameters', verbose_name='информация о товаре')
     parameter = models.ForeignKey(
         Parameter, on_delete=models.CASCADE, verbose_name='параметр')
     value = models.CharField(max_length=255, verbose_name='значение')

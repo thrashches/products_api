@@ -44,19 +44,16 @@ class OrderItem(models.Model):
         verbose_name_plural = 'Позиции заказов'
         unique_together = [
             'order',
-            'product',
-            'shop',
+            'product_info',
         ]
 
     order = models.ForeignKey(
-        Order, verbose_name='заказ', on_delete=models.CASCADE)
-    product = models.ForeignKey(
-        'goods.Product', verbose_name='товар', on_delete=models.CASCADE)
-    shop = models.ForeignKey(
-        'goods.Shop', verbose_name='магазин', on_delete=models.CASCADE)
+        Order, verbose_name='заказ', related_name='order_items', on_delete=models.CASCADE)
+    product_info = models.ForeignKey(
+        'goods.ProductInfo', verbose_name='товар', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1, validators=[
         MinValueValidator(1),
     ], verbose_name='количество')
 
     def __str__(self):
-        return f'{self.order.id}: {self.product.name}'
+        return f'{self.order.id}: {self.product_info.name}'

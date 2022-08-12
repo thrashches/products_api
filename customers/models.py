@@ -25,8 +25,9 @@ class UserManager(BaseUserManager):
             raise ValueError('The given email must be set')
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
+        user.is_active = True
         user.set_password(password)
-        user.save(using=self._db)
+        user.save()
         return user
 
     def create_user(self, email, password=None, **extra_fields):
@@ -59,16 +60,7 @@ class User(AbstractUser):
     position = models.CharField(
         verbose_name='Должность', max_length=40, blank=True)
     username_validator = UnicodeUsernameValidator()
-    username = models.CharField(
-        _('username'),
-        max_length=150,
-        help_text=_(
-            'Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
-        validators=[username_validator],
-        error_messages={
-            'unique': _("A user with that username already exists."),
-        },
-    )
+    username = None
     is_active = models.BooleanField(
         _('active'),
         default=False,

@@ -37,6 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'djoser',
+    'rest_framework_simplejwt',
     'customers.apps.CustomersConfig',
     'goods.apps.GoodsConfig',
     'orders.apps.OrdersConfig',
@@ -53,6 +56,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'shop_backend.urls'
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#     ),
+# }
 
 TEMPLATES = [
     {
@@ -110,7 +119,7 @@ AUTH_USER_MODEL = 'customers.User'
 
 LANGUAGE_CODE = 'ru-ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
