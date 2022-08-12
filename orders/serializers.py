@@ -1,7 +1,16 @@
+from dataclasses import fields
 from rest_framework import serializers
 from .models import Order, OrderItem
 from goods.serializers import ProductInfoSerializer
 
+
+class OrderItemCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = [
+            'product_info',
+            'quantity',
+        ]
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product_info = ProductInfoSerializer(write_only=True)
@@ -12,6 +21,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = [
+            'id',
             'name',
             'shop',
             'product_info',

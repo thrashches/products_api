@@ -73,7 +73,7 @@ class User(AbstractUser):
                                  choices=USER_TYPE_CHOICES, max_length=8, default='buyer')
 
     def __str__(self):
-        return f'{self.first_name} {self.last_name}'
+        return self.email
 
     class Meta:
         verbose_name = 'Пользователь'

@@ -32,6 +32,8 @@ class Order(models.Model):
         default='basket',
         choices=STATE_CHOICES,
         verbose_name='статус заказа')
+    contact = models.ForeignKey('customers.Contact', blank=True, null=True,
+                                on_delete=models.CASCADE, verbose_name='контакт клиента')
 
     def __str__(self):
         return f'{self.id} | {self.user.email} | {self.date_time}'

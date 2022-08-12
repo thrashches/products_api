@@ -20,10 +20,8 @@ except ImportError:
 
 class GoodsUploadAPIView(APIView):
     """Класс для загрузки товаров поставщиком"""
-    # TODO: Включить Permissions
     permission_classes = [
-        # permissions.IsAuthenticated,
-        # IsProvider,
+        IsProvider,
     ]
 
     def post(self, request, *args, **kwargs):
