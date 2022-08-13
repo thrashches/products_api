@@ -55,6 +55,8 @@ class User(AbstractUser):
     objects = UserManager()
     USERNAME_FIELD = 'email'
     email = models.EmailField(_('email address'), unique=True)
+    patronymic = models.CharField(
+        max_length=255, blank=True, verbose_name='Отчество')
     company = models.CharField(
         verbose_name='Компания', max_length=40, blank=True)
     position = models.CharField(
