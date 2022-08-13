@@ -62,6 +62,7 @@ class BasketAPIView(APIView):
 
 
 class OrderConfirmAPIView(APIView):
+    """Подтверждение заказа"""
     permission_classes = [
         IsObjectOwner,
     ]
@@ -73,10 +74,10 @@ class OrderConfirmAPIView(APIView):
         serializer = ContactSerializer(data=contact_data)
         if serializer.is_valid():
             send_email(
-                user=order.user, 
+                user=order.user,
                 subject='Информация о вашем заказе',
                 message='Ваш заказ был успешно оформлен!'
-                )
+            )
             serializer.validated_data['user'] = request.user
             contact = serializer.save()
             order.contact = contact
@@ -87,6 +88,7 @@ class OrderConfirmAPIView(APIView):
 
 
 class OrderListAPIView(generics.ListAPIView):
+    """Список заказов"""
     permission_classes = [
         permissions.IsAuthenticated,
     ]
@@ -94,4 +96,3 @@ class OrderListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)
-    

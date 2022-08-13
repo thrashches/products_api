@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Shop, Category, Product, ProductInfo, ProductParameter
+from .models import Shop, Category, Product, ProductInfo, ProductParameter, Parameter
 
 
 @admin.register(Shop)
@@ -36,4 +36,9 @@ class ProductInfoAdmin(admin.ModelAdmin):
 
 @admin.register(ProductParameter)
 class ProductParameterAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Parameter)
+class ParameterAdmin(admin.ModelAdmin):
     pass

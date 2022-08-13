@@ -118,3 +118,6 @@ class EmailConfirmToken(models.Model):
         if not self.token:
             self.token = generate_token()
         return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.user.email

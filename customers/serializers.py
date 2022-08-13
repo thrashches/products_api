@@ -12,7 +12,7 @@ class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         exclude = ['user']
-        
+
 
 class UserSerializer(serializers.ModelSerializer):
     password_1 = serializers.CharField(write_only=True)
@@ -32,24 +32,20 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, data):
+        """Дополнительная валидация паролей"""
         password_1 = data.pop('password_1')
         password_2 = data.pop('password_2')
 
         if password_1 and password_2 and password_1 != password_2:
             raise ValidationError('Пароли не совпадают!')
         validate_password(password_1)
-        print('data', data)
         data['password'] = password_1
         return data
 
     def create(self, validated_data):
-        print('validated', validated_data)
+        """Сохранение пароля пользователя"""
         password = validated_data.pop('password')
-        print('validated', validated_data)
         user = User.objects.create(**validated_data)
         user.set_password(password)
         user.save()
-        print('test')
         return user
-
-    

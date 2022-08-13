@@ -48,4 +48,3 @@ class ContactAdmin(admin.ModelAdmin):
 @admin.register(EmailConfirmToken)
 class EmailConfirmTokenAdmin(admin.ModelAdmin):
     pass
-

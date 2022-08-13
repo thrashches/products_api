@@ -28,6 +28,8 @@ class UserRegistrationAPIView(generics.CreateAPIView):
 
 
 class UserConfirmView(APIView):
+    """Подтверждение email пользователя"""
+
     def post(self, request, *args, **kwargs):
         if {'email', 'token'}.issubset(request.data):
             token = EmailConfirmToken.objects.filter(
