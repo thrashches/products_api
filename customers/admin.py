@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User
+from .models import User, EmailConfirmToken, Contact
 
 
 @admin.register(User)
@@ -38,3 +38,14 @@ class UserAdmin(UserAdmin):
         'user_type',
         'last_login',
     ]
+
+
+@admin.register(Contact)
+class ContactAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(EmailConfirmToken)
+class EmailConfirmTokenAdmin(admin.ModelAdmin):
+    pass
+

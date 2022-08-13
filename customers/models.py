@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.utils.translation import gettext_lazy as _
+from .utils import generate_token
 
 
 USER_TYPE_CHOICES = (
@@ -96,3 +97,24 @@ class Contact(models.Model):
 
     def __str__(self):
         return f'{self.user.email}: {self.contact_type}'
+
+
+class EmailConfirmToken(models.Model):
+    """Модель токена подтверждения пользователя"""
+    class Meta:
+        verbose_name = 'Токен подтверждения email'
+        verbose_name_plural = 'Токены подтверждения email'
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, verbose_name='пользоватлеь')
+    token = models.CharField(
+        max_length=64,
+        db_index=True,
+        unique=True,
+        verbose_name='токен'
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = generate_token()
+        return super().save(*args, **kwargs)

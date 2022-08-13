@@ -8,7 +8,7 @@ from customers.serializers import ContactSerializer
 from orders.serializers import OrderSerializer, OrderItemCreateSerializer
 from django.shortcuts import get_object_or_404
 from .models import Order, OrderItem
-from .utils import send_email
+from customers.utils import send_email
 
 
 class OrderRetrieveAPIView(generics.RetrieveAPIView):
@@ -72,7 +72,11 @@ class OrderConfirmAPIView(APIView):
         contact_data = request.data.get('contact_data')
         serializer = ContactSerializer(data=contact_data)
         if serializer.is_valid():
-            send_email(order.user)
+            send_email(
+                user=order.user, 
+                subject='Информация о вашем заказе',
+                message='Ваш заказ был успешно оформлен!'
+                )
             serializer.validated_data['user'] = request.user
             contact = serializer.save()
             order.contact = contact
