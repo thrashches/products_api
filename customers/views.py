@@ -5,7 +5,8 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
 from django.contrib.auth import get_user_model, authenticate
 from .serializers import UserSerializer
-from .utils import send_email
+# from .utils import send_email
+from .tasks import send_email_task
 from .models import EmailConfirmToken
 
 
@@ -20,8 +21,8 @@ class UserRegistrationAPIView(generics.CreateAPIView):
     def perform_create(self, serializer):
         user = serializer.save()
         email_token = EmailConfirmToken.objects.create(user_id=user.id)
-        send_email(
-            user=user,
+        send_email_task.delay(
+            email=user.email,
             subject='Подтверждение регистрации',
             message=email_token.token
         )

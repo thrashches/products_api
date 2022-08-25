@@ -9,11 +9,11 @@ def generate_token():
     return ''.join(random.choice(string.ascii_letters) for i in range(64))
 
 
-def send_email(user, subject, message):
+def send_email(email, subject, message):
     """Отправляет письмо пользователю"""
     send_mail(
         subject,
         message,
         settings.DEFAULT_FROM_EMAIL,
-        [user.email]
+        [email]
     )
