@@ -1,4 +1,8 @@
+from ast import Or
+from dataclasses import field
 from rest_framework import serializers
+
+from customers.serializers import ContactSerializer
 from .models import Order, OrderItem
 from goods.serializers import ProductInfoSerializer
 
@@ -64,3 +68,23 @@ class OrderSerializer(serializers.ModelSerializer):
             total_item = item.product_info.price * item.quantity
             total += total_item
         return total
+
+
+class BasketPutSerializer(serializers.ModelSerializer):
+    items = OrderItemCreateSerializer(many=True)
+
+    class Meta:
+        model = Order
+        fields = ['items']
+
+
+class BasketRemoveSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True)
+
+    class Meta:
+        model = Order
+        fields = ['items']
+
+
+class OrderConfirmSerializer(serializers.Serializer):
+    contact_data = ContactSerializer()

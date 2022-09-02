@@ -1,30 +1,40 @@
-from rest_framework import generics
+from rest_framework import generics, viewsets, mixins
 from rest_framework.views import APIView
+from rest_framework.decorators import action
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 from customers.permissions import IsObjectOwner
 from customers.serializers import ContactSerializer
-from orders.serializers import OrderSerializer, OrderItemCreateSerializer
+from orders.serializers import OrderSerializer, OrderItemCreateSerializer, BasketPutSerializer,\
+    BasketRemoveSerializer, OrderConfirmSerializer
 from django.shortcuts import get_object_or_404
 from .models import Order, OrderItem
 from customers.tasks import send_email_task
 
 
-class OrderRetrieveAPIView(generics.RetrieveAPIView):
-    """Отображение заказа"""
+class OrderViewset(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """Вьюсет для работы с заказами и корзиной"""
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
 
-class BasketAPIView(APIView):
-    """Работа с корзиной"""
-    permission_classes = [
-        permissions.IsAuthenticated,
-    ]
+    def list(self, request, *args, **kwargs):
+        """Отображение списка заказов"""
+        return super().list(request, *args, **kwargs)
 
-    def get(self, request, *args, **kwargs):
-        """Получение корзины пользователя"""
+    def retrieve(self, request, *args, **kwargs):
+        """Отображение заказа"""
+        return super().retrieve(request, *args, **kwargs)
+
+    @action(detail=False, url_path='basket',
+            url_name='basket_list', methods=['get']
+            )
+    def basket_list(self, request):
+        """Отображение корзины пользователя"""
         basket = Order.objects.filter(
             user=request.user, status='basket').last()
         if not basket:
@@ -33,7 +43,11 @@ class BasketAPIView(APIView):
         serializer = OrderSerializer(basket)
         return Response(serializer.data, status=HTTP_200_OK)
 
-    def put(self, request, *args, **kwargs):
+    @action(detail=False, url_path='basket',
+            url_name='basket_put', methods=['put'],
+            serializer_class=BasketPutSerializer
+            )
+    def basket_put(self, request):
         """Добавление товаров в корзину, редактирование позиции"""
         basket = Order.objects.filter(
             user=request.user, status='basket').last()
@@ -51,7 +65,11 @@ class BasketAPIView(APIView):
         basket_serializer = OrderSerializer(basket)
         return Response(basket_serializer.data, status=HTTP_200_OK)
 
-    def delete(self, request, *args, **kwargs):
+    @action(detail=False, url_path='basket',
+            url_name='basket_delete', methods=['delete'],
+            serializer_class=BasketRemoveSerializer
+            )
+    def basket_delete(self, request):
         """Удаление позиций из корзины"""
         if items := request.data.get('items'):
             OrderItem.objects.filter(id__in=items).delete()
@@ -60,14 +78,10 @@ class BasketAPIView(APIView):
         basket_serializer = OrderSerializer(basket)
         return Response(basket_serializer.data, status=HTTP_200_OK)
 
-
-class OrderConfirmAPIView(APIView):
-    """Подтверждение заказа"""
-    permission_classes = [
-        IsObjectOwner,
-    ]
-
-    def post(self, request, *args, **kwargs):
+    @action(detail=False, methods=['post'],
+            permission_classes=[IsObjectOwner], serializer_class=OrderConfirmSerializer)
+    def confirm(self, request, *args, **kwargs):
+        """Подтверждение заказа"""
         order_id = kwargs.get('pk')
         order = get_object_or_404(Order, id=order_id)
         contact_data = request.data.get('contact_data')
@@ -85,14 +99,3 @@ class OrderConfirmAPIView(APIView):
             order.save()
             return Response({'info': 'Заказ успешно оформлен!'}, status=HTTP_201_CREATED)
         return Response({'error': 'Неверный формат контактных данных!'}, status=HTTP_400_BAD_REQUEST)
-
-
-class OrderListAPIView(generics.ListAPIView):
-    """Список заказов"""
-    permission_classes = [
-        permissions.IsAuthenticated,
-    ]
-    serializer_class = OrderSerializer
-
-    def get_queryset(self):
-        return Order.objects.filter(user=self.request.user)

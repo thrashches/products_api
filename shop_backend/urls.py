@@ -15,10 +15,29 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework.routers import DefaultRouter
+from goods.views import ProductInfoViewset
+from customers.views import CustomersViewset
+from orders.views import OrderViewset
+from rest_framework.schemas import get_schema_view
+from django.views.generic import TemplateView
+
+router = DefaultRouter()
+router.register('goods', ProductInfoViewset)
+router.register('customers', CustomersViewset)
+router.register('orders', OrderViewset)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/customers/', include('customers.urls', namespace='customers')),
-    path('api/v1/goods/', include('goods.urls', namespace='goods')),
-    path('api/v1/orders/', include('orders.urls', namespace='orders')),
+    # path('api/v1/orders/', include('orders.urls', namespace='orders')),
+    path('api/v1/', include(router.urls)),
+    path('openapi/', get_schema_view(
+        title="Документация к API. Версия 1.",
+        description="",
+        version="1.0.0"
+    ), name='openapi-schema'),
+    path('swagger/', TemplateView.as_view(
+        template_name='swagger.html',
+        extra_context={'schema_url': 'openapi-schema'}
+    ), name='swagger-ui'),
 ]

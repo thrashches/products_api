@@ -1,10 +1,12 @@
-from rest_framework import generics
+from asyncio import mixins
+from rest_framework import generics, viewsets, mixins
 from rest_framework.views import APIView
+from rest_framework.decorators import action
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
 from django.contrib.auth import get_user_model, authenticate
-from .serializers import UserSerializer
+from .serializers import UserSerializer, LoginSerializer, ConfirmSerializer
 # from .utils import send_email
 from .tasks import send_email_task
 from .models import EmailConfirmToken
@@ -12,11 +14,18 @@ from .models import EmailConfirmToken
 
 User = get_user_model()
 
-
-class UserRegistrationAPIView(generics.CreateAPIView):
-    """Регистрация пользователя"""
+class CustomersViewset(viewsets.GenericViewSet):
+    """Вьюсет для работы с пользователями"""
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    @action(detail=False, methods=['post'])
+    def register(self, request):
+        """Регистрация пользователя"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=HTTP_201_CREATED)
 
     def perform_create(self, serializer):
         user = serializer.save()
@@ -27,11 +36,9 @@ class UserRegistrationAPIView(generics.CreateAPIView):
             message=email_token.token
         )
 
-
-class UserConfirmView(APIView):
-    """Подтверждение email пользователя"""
-
-    def post(self, request, *args, **kwargs):
+    @action(detail=False, methods=['post'], serializer_class=ConfirmSerializer)
+    def confirm(self, request):
+        """Подтверждение email пользователя"""
         if {'email', 'token'}.issubset(request.data):
             token = EmailConfirmToken.objects.filter(
                 token=request.data.get('token')
@@ -56,11 +63,9 @@ class UserConfirmView(APIView):
                 status=HTTP_400_BAD_REQUEST
             )
 
-
-class LoginAPIView(APIView):
-    """Вход в систему"""
-
-    def post(self, request, *args, **kwargs):
+    @action(detail=False, methods=['post'], serializer_class=LoginSerializer)
+    def login(self, request):
+        """Вход в систему"""
         if {'email', 'password'}.issubset(request.data):
             user = authenticate(
                 request,

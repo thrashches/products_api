@@ -1,7 +1,7 @@
 from unicodedata import name
 from rest_framework.views import APIView
-from rest_framework import generics
-from rest_framework import permissions
+from rest_framework.decorators import action
+from rest_framework import viewsets, mixins
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 from customers.permissions import IsProvider
@@ -18,13 +18,23 @@ except ImportError:
     from yaml import Loader
 
 
-class GoodsUploadAPIView(APIView):
-    """Класс для загрузки товаров поставщиком"""
-    permission_classes = [
-        IsProvider,
-    ]
+class ProductInfoViewset(mixins.ListModelMixin, mixins.RetrieveModelMixin,
+                         viewsets.GenericViewSet
+                         ):
+    """Вьюсет для работы с товарами"""
+    queryset = ProductInfo.objects.all()
+    serializer_class = ProductInfoSerializer
 
-    def post(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
+        """Отображение списка товаров"""
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        """Отображение карточки товара"""
+        return super().retrieve(request, *args, **kwargs)
+
+    @action(detail=False, methods=['post'], permission_classes=[IsProvider])
+    def upload(self, request):
         try:
             url = request.data['url']
             validator = URLValidator()
@@ -69,15 +79,3 @@ class GoodsUploadAPIView(APIView):
             return Response(data={'error': 'Неверный формат yaml файла!'}, status=HTTP_400_BAD_REQUEST)
         except ValidationError:
             return Response(data={'error': 'Неверный url магазина!'}, status=HTTP_400_BAD_REQUEST)
-
-
-class ProductInfoListAPIView(generics.ListAPIView):
-    """Класс отображения списка товаров"""
-    queryset = ProductInfo.objects.all()
-    serializer_class = ProductInfoSerializer
-
-
-class ProductInfoRetrieveAPIView(generics.RetrieveAPIView):
-    """Класс отображения карточки товара"""
-    queryset = ProductInfo.objects.all()
-    serializer_class = ProductInfoSerializer
