@@ -29,7 +29,6 @@ router.register('orders', OrderViewset)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('api/v1/orders/', include('orders.urls', namespace='orders')),
     path('api/v1/', include(router.urls)),
     path('openapi/', get_schema_view(
         title="Документация к API. Версия 1.",
