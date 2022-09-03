@@ -1,8 +1,6 @@
-from django.test import TestCase
 from rest_framework import status
-from rest_framework.test import APIRequestFactory, APITestCase
+from rest_framework.test import APITestCase
 from .models import User, EmailConfirmToken
-from .views import CustomersViewset
 
 
 class CustomersAPITestCase(APITestCase):
