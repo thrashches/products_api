@@ -1,13 +1,10 @@
-from asyncio import mixins
-from rest_framework import generics, viewsets, mixins
-from rest_framework.views import APIView
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
 from django.contrib.auth import get_user_model, authenticate
 from .serializers import UserSerializer, LoginSerializer, ConfirmSerializer
-# from .utils import send_email
 from .tasks import send_email_task
 from .models import EmailConfirmToken
 
