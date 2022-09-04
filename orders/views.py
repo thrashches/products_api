@@ -37,7 +37,8 @@ class OrderViewset(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
             """Отображение корзины пользователя"""
             if not basket:
                 # Если у пользователя нет корзины, то создаем пустую автоматически
-                basket = Order.objects.create(user=request.user, status='basket')
+                basket = Order.objects.create(
+                    user=request.user, status='basket')
             serializer = OrderSerializer(basket)
             return Response(serializer.data, status=HTTP_200_OK)
         if request.method == 'PUT':
@@ -62,12 +63,11 @@ class OrderViewset(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
             basket_serializer = OrderSerializer(basket)
             return Response(basket_serializer.data, status=HTTP_200_OK)
 
-    @action(detail=False, methods=['post'],
+    @action(detail=True, methods=['post'],
             permission_classes=[IsObjectOwner], serializer_class=OrderConfirmSerializer)
     def confirm(self, request, *args, **kwargs):
         """Подтверждение заказа"""
-        order_id = kwargs.get('pk')
-        order = get_object_or_404(Order, id=order_id)
+        order = self.get_object()
         contact_data = request.data.get('contact_data')
         serializer = ContactSerializer(data=contact_data)
         if serializer.is_valid():

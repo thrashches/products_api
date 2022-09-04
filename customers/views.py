@@ -11,6 +11,7 @@ from .models import EmailConfirmToken
 
 User = get_user_model()
 
+
 class CustomersViewset(viewsets.GenericViewSet):
     """Вьюсет для работы с пользователями"""
     queryset = User.objects.all()
