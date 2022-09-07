@@ -6,10 +6,11 @@ from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_RE
 from customers.permissions import IsObjectOwner
 from customers.serializers import ContactSerializer
 from orders.serializers import OrderSerializer, OrderItemCreateSerializer, BasketPutSerializer,\
-    BasketRemoveSerializer, OrderConfirmSerializer
+    BasketRemoveSerializer, OrderConfirmSerializer, FailSerializer, SuccessSerializer
 from django.shortcuts import get_object_or_404
 from .models import Order, OrderItem
 from customers.tasks import send_email_task
+from drf_spectacular.utils import extend_schema, extend_schema_serializer, OpenApiExample
 
 
 class OrderViewset(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
@@ -29,40 +30,64 @@ class OrderViewset(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
         """Отображение заказа"""
         return super().retrieve(request, *args, **kwargs)
 
-    @action(detail=False, methods=['get', 'put', 'delete'])
+    @extend_schema(
+        responses={200: OrderSerializer}
+    )
+    @action(detail=False, methods=['get'])
     def basket(self, request):
         basket = Order.objects.filter(
             user=request.user, status='basket').last()
-        if request.method == 'GET':
-            """Отображение корзины пользователя"""
-            if not basket:
-                # Если у пользователя нет корзины, то создаем пустую автоматически
-                basket = Order.objects.create(
-                    user=request.user, status='basket')
-            serializer = OrderSerializer(basket)
-            return Response(serializer.data, status=HTTP_200_OK)
-        if request.method == 'PUT':
-            """Добавление товаров в корзину, редактирование позиции"""
-            if items := request.data.get('items'):
-                for item in items:
-                    serializer = OrderItemCreateSerializer(data=item)
-                    if serializer.is_valid():
-                        order_item, created = OrderItem.objects.get_or_create(
-                            order=basket, product_info_id=item['product_info']
-                        )
-                        order_item.quantity = item['quantity']
-                        order_item.save()
-                    else:
-                        return Response({'error': 'Неверный формат данных!'}, status=HTTP_400_BAD_REQUEST)
-            basket_serializer = OrderSerializer(basket)
-            return Response(basket_serializer.data, status=HTTP_200_OK)
-        if request.method == 'DELETE':
-            """Удаление позиций из корзины"""
-            if items := request.data.get('items'):
-                OrderItem.objects.filter(id__in=items).delete()
-            basket_serializer = OrderSerializer(basket)
-            return Response(basket_serializer.data, status=HTTP_200_OK)
 
+        """Отображение корзины пользователя"""
+        if not basket:
+            # Если у пользователя нет корзины, то создаем пустую автоматически
+            basket = Order.objects.create(
+                user=request.user, status='basket')
+        serializer = OrderSerializer(basket)
+        return Response(serializer.data, status=HTTP_200_OK)
+
+    @extend_schema(
+        request=BasketPutSerializer,
+        responses={200: OrderSerializer, 400: FailSerializer}
+    )
+    @basket.mapping.put
+    def basket_put(self, request):
+        """Добавление товаров в корзину, редактирование позиции"""
+        basket = Order.objects.filter(
+            user=request.user, status='basket').last()
+        if items := request.data.get('items'):
+            for item in items:
+                serializer = OrderItemCreateSerializer(data=item)
+                if serializer.is_valid():
+                    order_item, created = OrderItem.objects.get_or_create(
+                        order=basket, product_info_id=item['product_info']
+                    )
+                    order_item.quantity = item['quantity']
+                    order_item.save()
+                else:
+                    return Response({'error': 'Неверный формат данных!'}, status=HTTP_400_BAD_REQUEST)
+        basket_serializer = OrderSerializer(basket)
+        return Response(basket_serializer.data, status=HTTP_200_OK)
+
+    @extend_schema(
+        request=BasketRemoveSerializer,
+        responses={200: OrderSerializer}
+    )
+    @basket.mapping.delete
+    def basket_delete(self, request):
+        """Удаление позиций из корзины"""
+        basket = Order.objects.filter(
+            user=request.user, status='basket').last()
+        if items := request.data.get('items'):
+            OrderItem.objects.filter(id__in=items).delete()
+        basket_serializer = OrderSerializer(basket)
+        return Response(basket_serializer.data, status=HTTP_200_OK)
+
+    @extend_schema(
+        request=OrderConfirmSerializer,
+        responses={201: SuccessSerializer,
+                   400: FailSerializer}
+    )
     @action(detail=True, methods=['post'],
             permission_classes=[IsObjectOwner], serializer_class=OrderConfirmSerializer)
     def confirm(self, request, *args, **kwargs):

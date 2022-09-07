@@ -6,8 +6,8 @@ from customers.permissions import IsProvider
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 from .models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter
-from .serializers import ProductInfoSerializer
-
+from .serializers import ProductInfoSerializer, GoodsUploadSerializer
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from yaml import load
 from yaml.parser import ParserError
 try:
@@ -31,8 +31,12 @@ class ProductInfoViewset(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         """Отображение карточки товара"""
         return super().retrieve(request, *args, **kwargs)
 
+    @extend_schema(
+        request=GoodsUploadSerializer
+    )
     @action(detail=False, methods=['post'], permission_classes=[IsProvider])
     def upload(self, request):
+        """Загрузка товаров из yml-файла"""
         try:
             url = request.data['url']
             validator = URLValidator()

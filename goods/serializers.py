@@ -9,6 +9,11 @@ class ShopSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class GoodsUploadSerializer(serializers.Serializer):
+    url = serializers.URLField()
+    data = serializers.FileField()
+
+
 class ProductSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField()
 

@@ -88,3 +88,11 @@ class BasketRemoveSerializer(serializers.ModelSerializer):
 
 class OrderConfirmSerializer(serializers.Serializer):
     contact_data = ContactSerializer()
+
+
+class SuccessSerializer(serializers.Serializer):
+    info = serializers.CharField()
+
+
+class FailSerializer(serializers.Serializer):
+    error = serializers.CharField()
